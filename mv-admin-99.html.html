@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Mountain View</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; display: flex; justify-content: center; padding: 20px; color: #333; }
+        .admin-card { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #e67e22; padding-bottom: 10px; }
+        .section { margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 5px solid #e67e22; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; }
+        select, input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-update { flex: 2; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.3s; }
+        .btn-update:hover { background: #d35400; }
+        .btn-update:disabled { background: #bdc3c7; cursor: not-allowed; }
+        
+        .btn-clear { flex: 1; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.3s; }
+        .btn-clear:hover { background: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <h1>Security Manager</h1>
+    
+    <div class="section">
+        <label>1. Master Admin Password</label>
+        <input type="password" id="masterAuth" placeholder="Enter password from Cell D1">
+    </div>
+
+    <div class="section">
+        <label>2. Select Class to Change</label>
+        <select id="targetClass">
+            <option value="">-- Choose a Class --</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <label>3. Create New Class Password</label>
+        <input type="text" id="newPass" placeholder="Enter New Teacher Password">
+    </div>
+
+    <div class="button-group">
+        <button class="btn-clear" onclick="clearForm()">CLEAR</button>
+        <button class="btn-update" id="saveBtn" onclick="updateSecurity()">SYNC NEW PASSWORD</button>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLy9ucnjG9iKM6pRrkbmaFDeNuvniEqsGzCgEY6SE3aECcyZ6389DTpd8lIVMDGgWH/exec'; 
+
+    const classes = ["9P","9L","9F","9U","9J","9G","8L","8F","8U","8G","8P","7P","7L","7F","7U","7G","6P","6J","6L","6F","6U","5P","5J","5L","5F","5U","4P","4J","4L","4F","4G","4U","3L","3P","3J","3U","2P","2J","2L","2F","2U","1P","1L","1J","1U","1F","P.P.2 PEACE","P.P.2 JOY","P.P.2 LOVE","P.P.2 FAITH","P.P.1 PEACE","P.P.1 FAITH","P.P.1 LOVE","P.P.1 JOY","PP1 GLORY","F.C. PEACE","F.C. LOVE","F.C. JOY"];
+
+    // Populate dropdown
+    const select = document.getElementById('targetClass');
+    classes.forEach(c => {
+        let opt = document.createElement('option');
+        opt.value = c; opt.innerText = c;
+        select.appendChild(opt);
+    });
+
+    // Clear Form Function
+    function clearForm() {
+        document.getElementById('masterAuth').value = "";
+        document.getElementById('targetClass').value = "";
+        document.getElementById('newPass').value = "";
+    }
+
+    // Update Security Function
+    function updateSecurity() {
+        const master = document.getElementById('masterAuth').value;
+        const cls = document.getElementById('targetClass').value;
+        const pass = document.getElementById('newPass').value;
+        const btn = document.getElementById('saveBtn');
+
+        if(!master || !cls || !pass) return alert("Please fill all fields before syncing.");
+        
+        btn.innerText = "Syncing...";
+        btn.disabled = true;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "updatePassword", masterAuth: master, targetClass: cls, newPass: pass })
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result.includes("Success")) {
+                alert("Success! Password updated for " + cls);
+                document.getElementById('newPass').value = "";
+            } else {
+                alert("Unauthorized Access"); 
+            }
+        })
+        .catch(err => {
+            alert("Connection Error. Check your internet or Web App URL.");
+            console.error(err);
+        })
+        .finally(() => {
+            btn.innerText = "SYNC NEW PASSWORD";
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>
